@@ -35,7 +35,11 @@ def translate(line):
     else:
         for detail in proof.get('detail_list'):
             tmp = dict()
-            rule = Rules[base.get('rule_id')]
+            rule = Rules.get(base.get('rule_id'))
+            if not rule:
+                print('no rule_id: {}'.format(base.get('rule_id')))
+                break
+
             for key in rule['fields']:
                 tmp[key + '_proof'] = detail.get(key)
 
