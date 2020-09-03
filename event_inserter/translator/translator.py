@@ -10,9 +10,8 @@
 
 import json
 import time
-from translator.rules import Rules
+from event_inserter.translator.rules import Rules
 
-from pprint import pprint
 
 def translate(line):
     ret = list()

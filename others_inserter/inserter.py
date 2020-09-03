@@ -1,12 +1,10 @@
 import os
 import csv
 
-from constant import AppPath
-from translator.translator import translate
+from others_inserter.constant import AppPath
+from others_inserter.translator.translator import translate
 
 from elasticsearch import Elasticsearch
-
-from pprint import pprint
 
 
 def inserter(c_file):
@@ -20,14 +18,22 @@ def inserter(c_file):
 
         log_reader = csv.DictReader(csv_file)
 
-        c = 0
-
+        count = 0
         for line in log_reader:
-            c += 1
+            if line.get('ngaf_url.method') != 'GET':
+                continue
+
+            if not line.get('ngaf_url.uri').startswith('/report'):
+                continue
+
             records = translate(line)
 
-            for record in records:
-                es.index(index='secevent' + '-' + record['record_date'], doc_type='politics', body=record)
+            if records:
+                es.index(index='ngaf_url' + '-' + records['record_date'], doc_type='politics', body=records)
+                count += 1
+
+            if not (count % 100):
+                print('{} inserted!'.format(count))
 
 
 if __name__ == '__main__':
@@ -35,7 +41,7 @@ if __name__ == '__main__':
         print('{} is Empty!'.format(AppPath.CSV_DIR))
 
     for dir in os.listdir(AppPath.CSV_DIR):
-        if dir.isdigit():
+        if dir == 'ngaf_url':
             path = os.path.join(AppPath.CSV_DIR, dir)
 
             for file in os.listdir(path):
